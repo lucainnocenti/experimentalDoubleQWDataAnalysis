@@ -64,19 +64,33 @@ RLtoHV = KroneckerProduct[
     } / Sqrt @ 2
 ];
 
-qwUnitary[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Dot[
+qwUnitary[{alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Dot[
     (* RLtoHV, *)
-    QWP[varphip] . HWP[thetap],
+    (* QWP[varphip] . HWP[thetap], *)
     QP[alpha2, delta2],
     QWP[varphi2] . HWP[theta2] . QWP[zeta2],
     QP[alpha1, delta1]
 ];
 
-(* this is projecting the polarisation onto (1,1), ie L+R, ie H *)
-qwIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Plus[
-    qwUnitary[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}][[1 ;; ;; 2, {outputDimension, outputDimension + 1}]],
-    qwUnitary[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}][[2 ;; ;; 2, {outputDimension, outputDimension + 1}]]
-] / Sqrt @ 2;
+
+projectUnitaryOnState[unitary_, polarizationState_] := Dot[
+    KroneckerProduct[IdentityMatrix @ outputDimension, ConjugateTranspose @ polarizationState],
+    unitary
+];
+
+(* project the polarization on the specified state *)
+qwUnitaryAfterPolarizationProjection[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := projectUnitaryOnState[
+    qwUnitary[{alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}],
+    {Cos[thetap], Sin[thetap] * Exp[I * varphip]}
+];
+
+(* project also on the possible input states *)
+qwProjectedIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := qwUnitaryAfterPolarizationProjection[
+    {varphip, thetap},
+    {alpha2, delta2},
+    {varphi2, theta2, zeta2},
+    {alpha1, delta1}
+][[All, {outputDimension, outputDimension + 1}]];
 
 (* qwIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := qwUnitary[
     {varphip, thetap}, (* projection angles *)
@@ -94,7 +108,7 @@ experimentalDoubleQwEvolution = KroneckerProduct[
             theta2 = 1.5570696348907915,
             thetap = 0.7853981644358207, varphip = 0.6904379401618504
         },
-        qwIsometry[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}]
+        qwProjectedIsometry[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}]
     ],
     With[{
             alpha1 = 336*Pi/180, delta1 = Pi/2,
@@ -104,7 +118,7 @@ experimentalDoubleQwEvolution = KroneckerProduct[
             theta2 = 1.5937676381596888,
             thetap = 0.7853981643272621, varphip = 0.6567152340642829
         },
-        qwIsometry[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}]
+        qwProjectedIsometry[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}]
     ]
 ];
 
