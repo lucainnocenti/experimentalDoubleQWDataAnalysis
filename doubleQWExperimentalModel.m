@@ -6,7 +6,7 @@ experimentalDoubleQwEvolution;
 
 Begin["`Private`"];
 
-(* EVERYTHING'S WRITTEN IN THE LR BASIS HERE *)
+(* WE ONLY USE THE LR BASIS IN THIS HOUSE *)
 
 outputDimension = 5;
 maxOccupationNumber = (outputDimension - 1)/2;
@@ -65,17 +65,25 @@ RLtoHV = KroneckerProduct[
 ];
 
 qwUnitary[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Dot[
-    RLtoHV,
+    (* RLtoHV, *)
     QWP[varphip] . HWP[thetap],
     QP[alpha2, delta2],
     QWP[varphi2] . HWP[theta2] . QWP[zeta2],
     QP[alpha1, delta1]
 ];
 
+(* this is projecting the polarisation onto (1,1), ie L+R, ie H *)
 qwIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Plus[
     qwUnitary[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}][[1 ;; ;; 2, {outputDimension, outputDimension + 1}]],
     qwUnitary[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}][[2 ;; ;; 2, {outputDimension, outputDimension + 1}]]
 ] / Sqrt @ 2;
+
+(* qwIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := qwUnitary[
+    {varphip, thetap}, (* projection angles *)
+    {alpha2, delta2}, (* second qplate *)
+    {varphi2, theta2, zeta2}, (* first (and only) coin operation *)
+    {alpha1, delta1} (* first qplate *)
+][[ ;; ;; 2, {outputDimension, outputDimension + 1}]]; *)
 
 experimentalDoubleQwEvolution = KroneckerProduct[
     With[{
