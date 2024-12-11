@@ -1,6 +1,10 @@
 BeginPackage["doubleQWExperimentalModel`"];
 
+(* Unprotect and clear all package symbols *)
+Unprotect @@ Names["doubleQWExperimentalModel`*"];
+ClearAll @@ Names["doubleQWExperimentalModel`*"];
 
+(* define public symbols *)
 experimentalDoubleQwEvolution;
 
 
@@ -13,32 +17,18 @@ maxOccupationNumber = (walkerSpaceDimension - 1)/2;
 (* these are the indices corresponding to the walker starting in position "0" *)
 inputStateIndices = {walkerSpaceDimension, walkerSpaceDimension + 1};
 
-base[R, -2] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-base[R, -1] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
-base[R, 0] = {0, 0, 0, 0, 1, 0, 0, 0, 0, 0};
-base[R, 1] = {0, 0, 0, 0, 0, 0, 1, 0, 0, 0};
-base[R, 2] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 0};
-base[R, 3] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-base[L, -3] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-base[L, -2] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0};
-base[L, -1] = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0};
-base[L, 0] = {0, 0, 0, 0, 0, 1, 0, 0, 0, 0};
-base[L, 1] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
-base[L, 2] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+(* the weird way to chose the element with 1 is to convert between notation with (-2, -1, 0, 1, 2) as indices to the natural Mathematica one with (1, 2, 3, 4, 5) *)
+(* polarization convention is here R->{1, 0}, L->{0, 1} *)
+base["R", n_Integer] := Normal @ Flatten @ KroneckerProduct[SparseArray[{n + maxOccupationNumber + 1 -> 1}, walkerSpaceDimension], {1, 0}];
+base["L", n_Integer] := Normal @ Flatten @ KroneckerProduct[SparseArray[{n + maxOccupationNumber + 1 -> 1}, walkerSpaceDimension], {0, 1}];
 
 
-projectionOperator[vec1_List] := KroneckerProduct[vec1, Conjugate@vec1];
-projectionOperator[vec1_List, vec2_List] := KroneckerProduct[vec1, Conjugate@vec2];
-
+(* define qplate unitary *)
 QP[alpha_, delta_] := Plus[
-    Sum[
-        Cos[delta/2] (projectionOperator@base[L, n] + projectionOperator@base[R, n]),
-        {n, -maxOccupationNumber, maxOccupationNumber}
-    ],
-    Sum[
-        I * Sin[delta / 2] (E^(2 I alpha) projectionOperator[base[L, n], base[R, n + 1]] + E^(-2 I alpha) projectionOperator[base[R, n], base[L, n - 1]]),
-        {n, -maxOccupationNumber, maxOccupationNumber}
+    Cos[delta / 2] * KroneckerProduct[IdentityMatrix @ walkerSpaceDimension, IdentityMatrix @ 2],
+    I * Sin[delta / 2] * Sum[
+        (# + ConjugateTranspose @ #) &@ (Exp[2 I alpha] KroneckerProduct[base["L", n], Conjugate @ base["R", n + 1] ]),
+        {n, -maxOccupationNumber, maxOccupationNumber - 1}
     ]
 ];
 
@@ -58,14 +48,7 @@ QWP[varphi_] := KroneckerProduct[
     } / 2
 ];
 
-(* RLtoHV = KroneckerProduct[
-    IdentityMatrix @ walkerSpaceDimension, 
-    {
-        {1, 1},
-        {-I, I}
-    } / Sqrt @ 2
-]; *)
-
+(* define the unitary describing A SINGLE quantum walk (without specifying input state or final projection) *)
 qwUnitary[{alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Dot[
     QP[alpha2, delta2]  (* second qplate) *),
     QWP[varphi2] . HWP[theta2] . QWP[zeta2], (* coin operation *)
@@ -121,8 +104,13 @@ experimentalDoubleQwEvolution = KroneckerProduct[
         },
         qwProjectedIsometry[{varphip, thetap}, {alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}]
     ]
-];
+] // Chop;
 
+
+(* Protect all package symbols *)
+With[{syms = Names["doubleQWExperimentalModel`*"]},
+  SetAttributes[syms, {Protected, ReadProtected}]
+];
 
 End[];  (* End `Private` *)
 
