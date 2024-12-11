@@ -81,8 +81,8 @@ experimentalDoubleQwEvolution = KroneckerProduct[
     With[{
             alpha1 = 19*Pi/180, delta1 = Pi/2,
             alpha2 = 77*Pi/180, delta2 = Pi,
-            zeta2 = 1.0070977275570985,
-            varphi2 = 2.908160255954825,
+            zeta2 = 2.908160255954825,
+            varphi2 = 1.0070977275570985,
             theta2 = 1.5570696348907915,
             thetap = 0.7853981644358207, varphip = 0.6904379401618504
         },
@@ -91,8 +91,8 @@ experimentalDoubleQwEvolution = KroneckerProduct[
     With[{
             alpha1 = 336*Pi/180, delta1 = Pi/2,
             alpha2 = 163*Pi/180, delta2 = Pi,
-            zeta2 = 1.095755783171672,
-            varphi2 = 2.89289820797498,
+            zeta2 = 2.89289820797498,
+            varphi2 = 1.095755783171672,
             theta2 = 1.5937676381596888,
             thetap = 0.7853981643272621, varphip = 0.6567152340642829
         },
