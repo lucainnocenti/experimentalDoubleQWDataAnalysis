@@ -76,12 +76,7 @@ qwProjectedIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, the
     {alpha1, delta1}
 ][[All, inputStateIndices]];
 
-(* qwIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := qwUnitary[
-    {varphip, thetap}, (* projection angles *)
-    {alpha2, delta2}, (* second qplate *)
-    {varphi2, theta2, zeta2}, (* first (and only) coin operation *)
-    {alpha1, delta1} (* first qplate *)
-][[ ;; ;; 2, inputStateIndices]]; *)
+
 
 experimentalDoubleQwEvolution = KroneckerProduct[
     With[{
