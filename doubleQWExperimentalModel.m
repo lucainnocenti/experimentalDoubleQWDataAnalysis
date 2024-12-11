@@ -8,8 +8,10 @@ Begin["`Private`"];
 
 (* WE ONLY USE THE LR BASIS IN THIS HOUSE *)
 
-outputDimension = 5;
-maxOccupationNumber = (outputDimension - 1)/2;
+walkerSpaceDimension = 5;
+maxOccupationNumber = (walkerSpaceDimension - 1)/2;
+(* these are the indices corresponding to the walker starting in position "0" *)
+inputStateIndices = {walkerSpaceDimension, walkerSpaceDimension + 1};
 
 base[R, -2] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 base[R, -1] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
@@ -41,7 +43,7 @@ QP[alpha_, delta_] := Plus[
 ];
 
 HWP[theta_] := KroneckerProduct[
-    IdentityMatrix @ outputDimension,
+    IdentityMatrix @ walkerSpaceDimension,
     {
         {0, Exp[2 I theta]},
         {Exp[-2 I theta], 0}
@@ -49,36 +51,35 @@ HWP[theta_] := KroneckerProduct[
 ];
 
 QWP[varphi_] := KroneckerProduct[
-    IdentityMatrix @ outputDimension, 
+    IdentityMatrix @ walkerSpaceDimension, 
     {
         {1 + I, (1 - I) Exp[2 I varphi]},
         {(1 - I) Exp[-2 I varphi], 1 + I}
     } / 2
 ];
 
-RLtoHV = KroneckerProduct[
-    IdentityMatrix @ outputDimension, 
+(* RLtoHV = KroneckerProduct[
+    IdentityMatrix @ walkerSpaceDimension, 
     {
         {1, 1},
         {-I, I}
     } / Sqrt @ 2
-];
+]; *)
 
 qwUnitary[{alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Dot[
-    (* RLtoHV, *)
-    (* QWP[varphip] . HWP[thetap], *)
-    QP[alpha2, delta2],
-    QWP[varphi2] . HWP[theta2] . QWP[zeta2],
-    QP[alpha1, delta1]
+    QP[alpha2, delta2]  (* second qplate) *),
+    QWP[varphi2] . HWP[theta2] . QWP[zeta2], (* coin operation *)
+    QP[alpha1, delta1] (* first qplate *)
 ];
 
 
 projectUnitaryOnState[unitary_, polarizationState_] := Dot[
-    KroneckerProduct[IdentityMatrix @ outputDimension, ConjugateTranspose @ polarizationState],
+    (* first space is walker, second space is polarization *)
+    KroneckerProduct[IdentityMatrix @ walkerSpaceDimension, ConjugateTranspose @ polarizationState],
     unitary
 ];
 
-(* project the polarization on the specified state *)
+(* project the polarization on the specified polarization state (input space is left unchanged) *)
 qwUnitaryAfterPolarizationProjection[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := projectUnitaryOnState[
     qwUnitary[{alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}],
     {Cos[thetap], Sin[thetap] * Exp[I * varphip]}
@@ -90,14 +91,14 @@ qwProjectedIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, the
     {alpha2, delta2},
     {varphi2, theta2, zeta2},
     {alpha1, delta1}
-][[All, {outputDimension, outputDimension + 1}]];
+][[All, inputStateIndices]];
 
 (* qwIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := qwUnitary[
     {varphip, thetap}, (* projection angles *)
     {alpha2, delta2}, (* second qplate *)
     {varphi2, theta2, zeta2}, (* first (and only) coin operation *)
     {alpha1, delta1} (* first qplate *)
-][[ ;; ;; 2, {outputDimension, outputDimension + 1}]]; *)
+][[ ;; ;; 2, inputStateIndices]]; *)
 
 experimentalDoubleQwEvolution = KroneckerProduct[
     With[{
