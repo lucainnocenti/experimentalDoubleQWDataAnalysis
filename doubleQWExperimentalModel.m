@@ -32,6 +32,7 @@ QP[alpha_, delta_] := Plus[
     ]
 ];
 
+(* lambda mezzi *)
 HWP[theta_] := KroneckerProduct[
     IdentityMatrix @ walkerSpaceDimension,
     {
@@ -49,7 +50,7 @@ QWP[varphi_] := KroneckerProduct[
 ];
 
 (* define the unitary describing A SINGLE quantum walk (without specifying input state or final projection) *)
-qwUnitary[{alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := Dot[
+qwUnitary[{alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_}] := Dot[
     QP[alpha2, delta2]  (* second qplate) *),
     QWP[varphi2] . HWP[theta2] . QWP[zeta2], (* coin operation *)
     QP[alpha1, delta1] (* first qplate *)
@@ -63,13 +64,13 @@ projectUnitaryOnState[unitary_, polarizationState_] := Dot[
 ];
 
 (* project the polarization on the specified polarization state (input space is left unchanged) *)
-qwUnitaryAfterPolarizationProjection[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := projectUnitaryOnState[
+qwUnitaryAfterPolarizationProjection[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_}] := projectUnitaryOnState[
     qwUnitary[{alpha2, delta2}, {varphi2, theta2, zeta2}, {alpha1, delta1}],
     {Cos[thetap], Sin[thetap] * Exp[I * varphip]}
 ];
 
 (* project also on the possible input states *)
-qwProjectedIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_ : Pi/2}] := qwUnitaryAfterPolarizationProjection[
+qwProjectedIsometry[{varphip_, thetap_}, {alpha2_, delta2_ : Pi}, {varphi2_, theta2_, zeta2_}, {alpha1_, delta1_}] := qwUnitaryAfterPolarizationProjection[
     {varphip, thetap},
     {alpha2, delta2},
     {varphi2, theta2, zeta2},
