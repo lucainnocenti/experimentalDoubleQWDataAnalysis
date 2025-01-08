@@ -290,7 +290,7 @@ experimentalData[data_Association]["merge_reps"] := If[
     experimentalData @ Append[data, {
         (* for each label associated to a dataset in "counts", sum over the first axis, which represents repetitions *)
         "counts" -> Association @@ Table[
-            datakey -> Total[ data["counts"][datakey] ],
+            datakey -> Mean[ data["counts"][datakey] ],
             {datakey, Keys @ data["counts"]}
         ]
     }],
